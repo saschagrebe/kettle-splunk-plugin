@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.sagr.kettle</groupId>
+    <artifactId>splunk-plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <version.pentaho.kettle>7.0.0.0-25</version.pentaho.kettle>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <!-- kettle sdk -->
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle-core</artifactId>
+            <version>${version.pentaho.kettle}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle-dbdialog</artifactId>
+            <version>${version.pentaho.kettle}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle-engine</artifactId>
+            <version>${version.pentaho.kettle}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle-ui-swt</artifactId>
+            <version>${version.pentaho.kettle}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>pentaho-kettle</groupId>
+            <artifactId>kettle5-log4j-plugin</artifactId>
+            <version>${version.pentaho.kettle}</version>
+        </dependency>
+
+        <!-- splunk java client -->
+        <dependency>
+            <groupId>com.splunk</groupId>
+            <artifactId>splunk</artifactId>
+            <version>1.6.0.0</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>pentaho-releases</id>
+            <url>http://repository.pentaho.org/artifactory/repo/</url>
+        </repository>
+
+        <repository>
+            <id>splunk-artifactory</id>
+            <name>Splunk Releases</name>
+            <url>http://splunk.artifactoryonline.com/splunk/ext-releases-local</url>
+        </repository>
+    </repositories>
+</project>
