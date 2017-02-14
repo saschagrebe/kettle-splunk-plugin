@@ -262,8 +262,8 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
         wlFields.setLayoutData(fdlReturn);
 
         final int keyWidgetRows;
-        if (input.getKeyField() != null) {
-            keyWidgetRows = input.getKeyField().length;
+        if (input.getFieldNames() != null) {
+            keyWidgetRows = input.getFieldNames().length;
         } else {
             keyWidgetRows = 1;
         }
@@ -385,15 +385,15 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
             wSearchQuery.setText(input.getSplunkSearchQuery());
         }
 
-        if (input.getKeyField() != null) {
+        if (input.getFieldNames() != null) {
 
 
-            for (int i = 0; i < input.getKeyField().length; i++) {
+            for (int i = 0; i < input.getFieldNames().length; i++) {
 
                 TableItem item = wFields.table.getItem(i);
 
-                if (input.getKeyField()[i] != null) {
-                    item.setText(1, input.getKeyField()[i]);
+                if (input.getFieldNames()[i] != null) {
+                    item.setText(1, input.getFieldNames()[i]);
                 }
 
                 if (input.getOutputField()[i] != null) {
@@ -473,7 +473,7 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
 
         for (int i = 0; i < nrKeys; i++) {
             TableItem item = wFields.getNonEmpty(i);
-            input.getKeyField()[i] = item.getText(1);
+            input.getFieldNames()[i] = item.getText(1);
             input.getOutputField()[i] = item.getText(2);
 
             input.getOutputDefault()[i] = item.getText(3);
