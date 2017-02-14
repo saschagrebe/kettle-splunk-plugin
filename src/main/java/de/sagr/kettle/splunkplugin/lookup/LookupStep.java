@@ -4,7 +4,6 @@ import com.splunk.*;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
-import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
@@ -74,7 +73,7 @@ public class LookupStep extends BaseStep implements StepInterface {
         }
 
         // search splunk an process each event
-        try (final InputStream exportSearch = data.splunkService.export(meta.getSplunkSearchQuery())) {
+        try (final InputStream exportSearch = data.splunkService.export("search " + meta.getSplunkSearchQuery())) {
             // Display results using the SDK's multi-results reader for XML
             final MultiResultsReaderXml multiResultsReader = new MultiResultsReaderXml(exportSearch);
 
@@ -123,6 +122,7 @@ public class LookupStep extends BaseStep implements StepInterface {
         splunkCredentials.setPort(Integer.parseInt(meta.getSplunkPort()));
         splunkCredentials.setUsername(meta.getSplunkUsername());
         splunkCredentials.setPassword(meta.getSplunkPassword());
+        splunkCredentials.setSSLSecurityProtocol(SSLSecurityProtocol.TLSv1_2);
 
         // connect to splunk service
         data.splunkService = Service.connect(splunkCredentials);
