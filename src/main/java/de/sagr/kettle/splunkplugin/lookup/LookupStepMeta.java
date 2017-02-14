@@ -169,7 +169,7 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
     @Override
     public void setDefault() {
         splunkHost = "localhost";
-        splunkPort = "8000";
+        splunkPort = "8089";
         splunkUsername = "";
         splunkPassword = "";
         splunkSearchQuery = "";
