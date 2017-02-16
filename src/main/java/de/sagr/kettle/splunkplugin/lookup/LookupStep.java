@@ -4,8 +4,10 @@ import com.splunk.*;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -34,14 +36,14 @@ public class LookupStep extends BaseStep implements StepInterface {
             first = false;
 
             // determine output field structure
-            data.outputRowMeta = (RowMetaInterface) getInputRowMeta().clone();
-            meta.getFields(data.outputRowMeta, getStepname(), null, null, this);
+            data.outputRowMeta = new RowMeta();
+            meta.getFields(data.outputRowMeta, getStepname(), null, null, this, null, null);
+            logRowlevel(data.outputRowMeta.toStringMeta());
 
             // stores default values in correct format
             data.defaultObjects = new Object[meta.getFieldNames().length];
 
             // stores the indices where to look for the key fields in the input rows
-            data.fieldIndex = new int[meta.getFieldNames().length];
             data.conversionMeta = new ValueMetaInterface[meta.getFieldNames().length];
 
             for (int i = 0; i < meta.getFieldNames().length; i++) {
@@ -54,22 +56,16 @@ public class LookupStep extends BaseStep implements StepInterface {
                 data.conversionMeta[i] = conversionMeta;
 
                 // calculate default values
-                if (!Const.isEmpty(meta.getOutputDefault()[i])) {
-                    data.defaultObjects[i] = returnMeta.convertData(data.conversionMeta[i], meta.getOutputDefault()[i]);
+                if (!Utils.isEmpty(meta.getOutputDefault()[i]) && returnMeta.getType() != 0) {
+                    data.defaultObjects[i] = returnMeta.convertData(conversionMeta, meta.getOutputDefault()[i]);
 
                 } else {
                     data.defaultObjects[i] = null;
 
                 }
-
-                // calc key field indices
-                data.fieldIndex[i] = data.outputRowMeta.indexOfValue(meta.getFieldNames()[i]);
-                if (data.fieldIndex[i] < 0) {
-                    throw new KettleStepException(getMessage("Step.Error.UnableFindField", meta.getFieldNames()[i], "" + (i + 1)));
-                }
-
             }
 
+            logRowlevel(data.conversionMeta.toString());
         }
 
         // search splunk an process each event
@@ -93,7 +89,9 @@ public class LookupStep extends BaseStep implements StepInterface {
                         }
                         // else convert the value to desired format
                         else {
-                            outputRow[i] = data.outputRowMeta.getValueMeta(i).convertData(data.conversionMeta[i], splunkValue);
+                            final ValueMetaInterface valueMeta = data.outputRowMeta.getValueMeta(i);
+                            logRowlevel(valueMeta.toStringMeta());
+                            outputRow[i] = valueMeta.convertData(data.conversionMeta[i], splunkValue);
                         }
                     }
 

@@ -13,9 +13,6 @@ public class LookupStepData extends BaseStepData implements StepDataInterface {
 	// precomputed default objects
 	public Object[] defaultObjects;
 
-	// where the key field indexes are
-	public int[] fieldIndex;
-
 	// splunk service
 	public Service splunkService;
 

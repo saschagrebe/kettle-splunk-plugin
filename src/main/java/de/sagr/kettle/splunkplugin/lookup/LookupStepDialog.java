@@ -396,32 +396,28 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
                     item.setText(1, input.getFieldNames()[i]);
                 }
 
-                if (input.getOutputField()[i] != null) {
-                    item.setText(2, input.getOutputField()[i]);
-                }
-
                 if (input.getOutputDefault()[i] != null) {
-                    item.setText(3, input.getOutputDefault()[i]);
+                    item.setText(2, input.getOutputDefault()[i]);
                 }
 
-                item.setText(4, ValueMeta.getTypeDesc(input.getOutputType()[i]));
+                item.setText(3, ValueMetaBase.getTypeDesc(input.getOutputType()[i]));
 
                 if (input.getOutputFormat()[i] != null) {
-                    item.setText(5, input.getOutputFormat()[i]);
+                    item.setText(4, input.getOutputFormat()[i]);
                 }
-                item.setText(6, input.getOutputLength()[i] < 0 ? "" : "" + input.getOutputLength()[i]);
-                item.setText(7, input.getOutputPrecision()[i] < 0 ? "" : "" + input.getOutputPrecision()[i]);
+                item.setText(5, input.getOutputLength()[i] < 0 ? "" : "" + input.getOutputLength()[i]);
+                item.setText(6, input.getOutputPrecision()[i] < 0 ? "" : "" + input.getOutputPrecision()[i]);
 
                 if (input.getOutputCurrency()[i] != null) {
-                    item.setText(8, input.getOutputCurrency()[i]);
+                    item.setText(7, input.getOutputCurrency()[i]);
                 }
 
                 if (input.getOutputDecimal()[i] != null) {
-                    item.setText(9, input.getOutputDecimal()[i]);
+                    item.setText(8, input.getOutputDecimal()[i]);
                 }
 
                 if (input.getOutputGroup()[i] != null) {
-                    item.setText(10, input.getOutputGroup()[i]);
+                    item.setText(9, input.getOutputGroup()[i]);
                 }
 
             }
@@ -474,23 +470,20 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
         for (int i = 0; i < nrKeys; i++) {
             TableItem item = wFields.getNonEmpty(i);
             input.getFieldNames()[i] = item.getText(1);
-            input.getOutputField()[i] = item.getText(2);
-
-            input.getOutputDefault()[i] = item.getText(3);
-            input.getOutputType()[i] = ValueMeta.getType(item.getText(4));
+            input.getOutputDefault()[i] = item.getText(2);
+            input.getOutputType()[i] = ValueMetaBase.getType(item.getText(3));
 
             // fix unknowns
             if (input.getOutputType()[i] < 0) {
                 input.getOutputType()[i] = ValueMetaInterface.TYPE_STRING;
             }
 
-            input.getOutputFormat()[i] = item.getText(5);
-            input.getOutputLength()[i] = Const.toInt(item.getText(6), -1);
-            input.getOutputPrecision()[i] = Const.toInt(item.getText(7), -1);
-            input.getOutputCurrency()[i] = item.getText(8);
-            input.getOutputDecimal()[i] = item.getText(9);
-            input.getOutputGroup()[i] = item.getText(10);
-
+            input.getOutputFormat()[i] = item.getText(4);
+            input.getOutputLength()[i] = Const.toInt(item.getText(5), -1);
+            input.getOutputPrecision()[i] = Const.toInt(item.getText(6), -1);
+            input.getOutputCurrency()[i] = item.getText(7);
+            input.getOutputDecimal()[i] = item.getText(8);
+            input.getOutputGroup()[i] = item.getText(9);
         }
 
         dispose();

@@ -16,6 +16,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.*;
 import org.pentaho.di.trans.*;
 import org.pentaho.di.trans.step.*;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 @Step( id = "SplunkInput", image = "splunk-icon.png", name = "Splunk Input",
@@ -29,7 +30,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
     private String splunkSearchQuery;
 
     private String fieldNames[];
-    private String outputField[];
     private String outputDefault[];
     private int outputType[];
     private String outputFormat[];
@@ -91,14 +91,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
 
     public void setFieldNames(String[] fieldNames) {
         this.fieldNames = fieldNames;
-    }
-
-    public String[] getOutputField() {
-        return outputField;
-    }
-
-    public void setOutputField(String[] outputField) {
-        this.outputField = outputField;
     }
 
     public String[] getOutputDefault() {
@@ -181,7 +173,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
     // helper method to allocate the arrays
     public void allocate(int nrkeys) {
         fieldNames = new String[nrkeys];
-        outputField = new String[nrkeys];
         outputDefault = new String[nrkeys];
         outputType = new int[nrkeys];
         outputFormat = new String[nrkeys];
@@ -196,20 +187,23 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
     }
 
     @Override
-    public void getFields(RowMetaInterface r, String origin, RowMetaInterface[] info, StepMeta nextStep, VariableSpace space) {
+    public void getFields(RowMetaInterface inputRowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep, VariableSpace space, Repository repository, IMetaStore metaStore) throws KettleStepException {
+        if (fieldNames == null) {
+            return;
+        }
 
         // append the outputFields to the output
-        for (int i = 0; i < outputField.length; i++) {
-            final ValueMetaInterface v = new ValueMetaBase(outputField[i], outputType[i]);
-            v.setLength(outputLength[i]);
-            v.setPrecision(outputPrecision[i]);
-            v.setCurrencySymbol(outputCurrency[i]);
-            v.setConversionMask(outputFormat[i]);
-            v.setDecimalSymbol(outputDecimal[i]);
-            v.setGroupingSymbol(outputGroup[i]);
+        for (int i = 0; i < fieldNames.length; i++) {
+            final ValueMetaInterface valueMeta = new ValueMetaBase(fieldNames[i], outputType[i]);
+            valueMeta.setLength(outputLength[i]);
+            valueMeta.setPrecision(outputPrecision[i]);
+            valueMeta.setCurrencySymbol(outputCurrency[i]);
+            valueMeta.setConversionMask(outputFormat[i]);
+            valueMeta.setDecimalSymbol(outputDecimal[i]);
+            valueMeta.setGroupingSymbol(outputGroup[i]);
 
-            v.setOrigin(origin);
-            r.addValueMeta(v);
+            valueMeta.setOrigin(origin);
+            inputRowMeta.addValueMeta(valueMeta);
         }
     }
 
@@ -225,7 +219,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
 
         for (int i = 0; i < nrKeys; i++) {
             retval.fieldNames[i] = fieldNames[i];
-            retval.outputField[i] = outputField[i];
             retval.outputDefault[i] = outputDefault[i];
             retval.outputType[i] = outputType[i];
             retval.outputCurrency[i] = outputCurrency[i];
@@ -253,7 +246,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
         for (int i = 0; i < fieldNames.length; i++) {
             retval.append("      <lookup>").append(Const.CR);
             retval.append("        ").append(XMLHandler.addTagValue("fieldName", fieldNames[i]));
-            retval.append("        ").append(XMLHandler.addTagValue("outfield", outputField[i]));
             retval.append("        ").append(XMLHandler.addTagValue("default", outputDefault[i]));
             retval.append("        ").append(XMLHandler.addTagValue("type", ValueMetaBase.getTypeDesc(outputType[i])));
             retval.append("        ").append(XMLHandler.addTagValue("format", outputFormat[i]));
@@ -270,7 +262,7 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
     }
 
     @Override
-    public void loadXML(Node stepnode, List<DatabaseMeta> databases, Map<String, Counter> counters) throws KettleXMLException {
+    public void loadXML(Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore) throws KettleXMLException {
         try {
             splunkHost = XMLHandler.getTagValue(stepnode, "host");
             splunkPort = XMLHandler.getTagValue(stepnode, "port");
@@ -285,7 +277,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
                 Node knode = XMLHandler.getSubNodeByNr(stepnode, "lookup", i);
 
                 fieldNames[i] = XMLHandler.getTagValue(knode, "fieldName");
-                outputField[i] = XMLHandler.getTagValue(knode, "outfield");
                 outputDefault[i] = XMLHandler.getTagValue(knode, "default");
                 outputType[i] = ValueMetaBase.getType(XMLHandler.getTagValue(knode, "type"));
                 outputFormat[i] = XMLHandler.getTagValue(knode, "format");
@@ -308,7 +299,7 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
     }
 
     @Override
-    public void readRep(Repository rep, ObjectId id_step, List<DatabaseMeta> databases, Map<String, Counter> counters) throws KettleException {
+    public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases) throws KettleException {
         try {
             splunkHost = rep.getStepAttributeString(id_step, "host");
             splunkPort = rep.getStepAttributeString(id_step, "port");
@@ -321,7 +312,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
 
             for (int i = 0; i < nrKeys; i++) {
                 fieldNames[i] = rep.getStepAttributeString(id_step, i, "lookup_field");
-                outputField[i] = rep.getStepAttributeString(id_step, i, "lookup_outfield");
                 outputDefault[i] = rep.getStepAttributeString(id_step, i, "lookup_default");
                 outputType[i] = ValueMetaBase.getType(rep.getStepAttributeString(id_step, i, "lookup_type"));
                 outputFormat[i] = rep.getStepAttributeString(id_step, i, "lookup_format");
@@ -339,7 +329,7 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
     }
 
     @Override
-    public void saveRep(Repository rep, ObjectId id_transformation, ObjectId id_step) throws KettleException {
+    public void saveRep(Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step) throws KettleException {
         try {
             rep.saveStepAttribute(id_transformation, id_step, "host", splunkHost);
             rep.saveStepAttribute(id_transformation, id_step, "port", splunkPort);
@@ -349,7 +339,6 @@ public class LookupStepMeta extends BaseStepMeta implements StepMetaInterface {
 
             for (int i = 0; i < fieldNames.length; i++) {
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_field", fieldNames[i]);
-                rep.saveStepAttribute(id_transformation, id_step, i, "lookup_outfield", outputField[i]);
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_default", outputDefault[i]);
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_type", ValueMetaBase.getTypeDesc(outputType[i]));
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_format", outputFormat[i]);
