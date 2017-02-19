@@ -1,11 +1,8 @@
-package de.sagr.kettle.splunkplugin.lookup;
+package de.sagr.kettle.splunkplugin.input;
 
 import com.splunk.*;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.row.RowMeta;
-import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
@@ -16,21 +13,21 @@ import org.pentaho.di.trans.step.*;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class LookupStep extends BaseStep implements StepInterface {
+public class InputStep extends BaseStep implements StepInterface {
 
-    private LookupStepData data;
+    private InputStepData data;
 
-    private LookupStepMeta meta;
+    private InputStepMeta meta;
 
-    public LookupStep(final StepMeta s, final StepDataInterface stepDataInterface, final int c, final TransMeta t, final Trans dis) {
+    public InputStep(final StepMeta s, final StepDataInterface stepDataInterface, final int c, final TransMeta t, final Trans dis) {
         super(s, stepDataInterface, c, t, dis);
     }
 
     @Override
     public boolean processRow(final StepMetaInterface smi, final StepDataInterface sdi) throws KettleException {
 
-        meta = (LookupStepMeta) smi;
-        data = (LookupStepData) sdi;
+        meta = (InputStepMeta) smi;
+        data = (InputStepData) sdi;
 
         if (first) {
             first = false;
@@ -41,12 +38,12 @@ public class LookupStep extends BaseStep implements StepInterface {
             logRowlevel(data.outputRowMeta.toStringMeta());
 
             // stores default values in correct format
-            data.defaultObjects = new Object[meta.getFieldNames().length];
+            data.defaultObjects = new Object[meta.getInputFields().length];
 
             // stores the indices where to look for the key fields in the input rows
-            data.conversionMeta = new ValueMetaInterface[meta.getFieldNames().length];
+            data.conversionMeta = new ValueMetaInterface[meta.getInputFields().length];
 
-            for (int i = 0; i < meta.getFieldNames().length; i++) {
+            for (int i = 0; i < meta.getInputFields().length; i++) {
 
                 // get output and from-string conversion format for each field
                 final ValueMetaInterface returnMeta = data.outputRowMeta.getValueMeta(i);
@@ -56,8 +53,9 @@ public class LookupStep extends BaseStep implements StepInterface {
                 data.conversionMeta[i] = conversionMeta;
 
                 // calculate default values
-                if (!Utils.isEmpty(meta.getOutputDefault()[i]) && returnMeta.getType() != 0) {
-                    data.defaultObjects[i] = returnMeta.convertData(conversionMeta, meta.getOutputDefault()[i]);
+                final InputField nextField = meta.getInputFields()[i];
+                if (!Utils.isEmpty(nextField.getDefaultValue()) && returnMeta.getType() != 0) {
+                    data.defaultObjects[i] = returnMeta.convertData(conversionMeta, nextField.getDefaultValue());
 
                 } else {
                     data.defaultObjects[i] = null;
@@ -79,8 +77,9 @@ public class LookupStep extends BaseStep implements StepInterface {
                     final Object[] outputRow = new Object[data.outputRowMeta.size()];
 
                     // fill the output fields with look up data
-                    for (int i = 0; i < meta.getFieldNames().length; i++) {
-                        final String nextFieldName = meta.getFieldNames()[i];
+                    for (int i = 0; i < meta.getInputFields().length; i++) {
+                        final InputField nextField = meta.getInputFields()[i];
+                        final String nextFieldName = nextField.getName();
                         final String splunkValue = event.get(nextFieldName);
 
                         // if nothing is there, return the default
@@ -112,8 +111,8 @@ public class LookupStep extends BaseStep implements StepInterface {
 
     @Override
     public boolean init(final StepMetaInterface smi, final StepDataInterface sdi) {
-        meta = (LookupStepMeta) smi;
-        data = (LookupStepData) sdi;
+        meta = (InputStepMeta) smi;
+        data = (InputStepData) sdi;
 
         final ServiceArgs splunkCredentials = new ServiceArgs();
         splunkCredentials.setHost(meta.getSplunkHost());
@@ -133,8 +132,8 @@ public class LookupStep extends BaseStep implements StepInterface {
 
     @Override
     public void dispose(final StepMetaInterface smi, final StepDataInterface sdi) {
-        meta = (LookupStepMeta) smi;
-        data = (LookupStepData) sdi;
+        meta = (InputStepMeta) smi;
+        data = (InputStepData) sdi;
 
         data.splunkService = null;
 
@@ -142,6 +141,6 @@ public class LookupStep extends BaseStep implements StepInterface {
     }
 
     private String getMessage(final String key, final Object... param) {
-        return BaseMessages.getString(LookupStep.class, key, param);
+        return BaseMessages.getString(InputStep.class, key, param);
     }
 }

@@ -1,4 +1,4 @@
-package de.sagr.kettle.splunkplugin.lookup;
+package de.sagr.kettle.splunkplugin.input;
 
 import com.splunk.Service;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -6,7 +6,7 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
-public class LookupStepData extends BaseStepData implements StepDataInterface {
+public class InputStepData extends BaseStepData implements StepDataInterface {
 
 	public RowMetaInterface outputRowMeta;
 	
@@ -19,7 +19,7 @@ public class LookupStepData extends BaseStepData implements StepDataInterface {
 	// meta info for a string conversion 
 	public ValueMetaInterface[] conversionMeta;
 	
-    public LookupStepData()
+    public InputStepData()
 	{
 		super();
 	}

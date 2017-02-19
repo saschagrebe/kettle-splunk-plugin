@@ -1,7 +1,8 @@
-package de.sagr.kettle.splunkplugin.lookup;
+package de.sagr.kettle.splunkplugin.input;
 
 import java.util.Arrays;
 
+import com.sun.rowset.internal.InsertRow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -25,7 +26,6 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.i18n.BaseMessages;
@@ -37,9 +37,9 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 
-public class LookupStepDialog extends BaseStepDialog implements StepDialogInterface {
+public class InputStepDialog extends BaseStepDialog implements StepDialogInterface {
 
-    private LookupStepMeta input;
+    private InputStepMeta input;
 
     // connection settings widgets
     private Group gConnect;
@@ -56,7 +56,7 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
     private Label wlSearchQuery;
     private TextVar wSearchQuery;
 
-    // lookup fields settings widgets
+    // input fields settings widgets
     private Label wlFields;
     private TableView wFields;
 
@@ -67,9 +67,9 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
     private ColumnInfo fieldColumn = null;
 
     // constructor
-    public LookupStepDialog(Shell parent, Object in, TransMeta transMeta, String sname) {
+    public InputStepDialog(Shell parent, Object in, TransMeta transMeta, String sname) {
         super(parent, (BaseStepMeta) in, transMeta, sname);
-        input = (LookupStepMeta) in;
+        input = (InputStepMeta) in;
     }
 
     // builds and shows the dialog
@@ -262,8 +262,8 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
         wlFields.setLayoutData(fdlReturn);
 
         final int keyWidgetRows;
-        if (input.getFieldNames() != null) {
-            keyWidgetRows = input.getFieldNames().length;
+        if (input.getInputFields() != null) {
+            keyWidgetRows = input.getInputFields().length;
         } else {
             keyWidgetRows = 1;
         }
@@ -385,39 +385,38 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
             wSearchQuery.setText(input.getSplunkSearchQuery());
         }
 
-        if (input.getFieldNames() != null) {
+        if (input.getInputFields() != null) {
 
+            for (int i = 0; i < input.getInputFields().length; i++) {
+                final InputField nextField = input.getInputFields()[i];
+                final TableItem item = wFields.table.getItem(i);
 
-            for (int i = 0; i < input.getFieldNames().length; i++) {
-
-                TableItem item = wFields.table.getItem(i);
-
-                if (input.getFieldNames()[i] != null) {
-                    item.setText(1, input.getFieldNames()[i]);
+                if (nextField.getName() != null) {
+                    item.setText(1, nextField.getName());
                 }
 
-                if (input.getOutputDefault()[i] != null) {
-                    item.setText(2, input.getOutputDefault()[i]);
+                if (nextField.getDefaultValue() != null) {
+                    item.setText(2, nextField.getDefaultValue());
                 }
 
-                item.setText(3, ValueMetaBase.getTypeDesc(input.getOutputType()[i]));
+                item.setText(3, ValueMetaBase.getTypeDesc(nextField.getType()));
 
-                if (input.getOutputFormat()[i] != null) {
-                    item.setText(4, input.getOutputFormat()[i]);
+                if (nextField.getFormat() != null) {
+                    item.setText(4, nextField.getFormat());
                 }
-                item.setText(5, input.getOutputLength()[i] < 0 ? "" : "" + input.getOutputLength()[i]);
-                item.setText(6, input.getOutputPrecision()[i] < 0 ? "" : "" + input.getOutputPrecision()[i]);
+                item.setText(5, nextField.getLength() < 0 ? "" : "" + nextField.getLength());
+                item.setText(6, nextField.getPrecision() < 0 ? "" : "" + nextField.getPrecision());
 
-                if (input.getOutputCurrency()[i] != null) {
-                    item.setText(7, input.getOutputCurrency()[i]);
-                }
-
-                if (input.getOutputDecimal()[i] != null) {
-                    item.setText(8, input.getOutputDecimal()[i]);
+                if (nextField.getCurrency() != null) {
+                    item.setText(7, nextField.getCurrency());
                 }
 
-                if (input.getOutputGroup()[i] != null) {
-                    item.setText(9, input.getOutputGroup()[i]);
+                if (nextField.getDecimal() != null) {
+                    item.setText(8, nextField.getDecimal());
+                }
+
+                if (nextField.getGroup() != null) {
+                    item.setText(9, nextField.getGroup());
                 }
 
             }
@@ -468,28 +467,33 @@ public class LookupStepDialog extends BaseStepDialog implements StepDialogInterf
         input.allocate(nrKeys);
 
         for (int i = 0; i < nrKeys; i++) {
-            TableItem item = wFields.getNonEmpty(i);
-            input.getFieldNames()[i] = item.getText(1);
-            input.getOutputDefault()[i] = item.getText(2);
-            input.getOutputType()[i] = ValueMetaBase.getType(item.getText(3));
+            final InputField inputField = new InputField();
+            final TableItem item = wFields.getNonEmpty(i);
+            inputField.setName(item.getText(1));
+            inputField.setDefaultValue(item.getText(2));
 
-            // fix unknowns
-            if (input.getOutputType()[i] < 0) {
-                input.getOutputType()[i] = ValueMetaInterface.TYPE_STRING;
+            final int type = ValueMetaBase.getType(item.getText(3));
+            if (type < 0) {
+                // fix unknowns
+                inputField.setType(ValueMetaInterface.TYPE_STRING);
+            } else {
+                inputField.setType(type);
             }
 
-            input.getOutputFormat()[i] = item.getText(4);
-            input.getOutputLength()[i] = Const.toInt(item.getText(5), -1);
-            input.getOutputPrecision()[i] = Const.toInt(item.getText(6), -1);
-            input.getOutputCurrency()[i] = item.getText(7);
-            input.getOutputDecimal()[i] = item.getText(8);
-            input.getOutputGroup()[i] = item.getText(9);
+            inputField.setFormat(item.getText(4));
+            inputField.setLength(Const.toInt(item.getText(5), -1));
+            inputField.setPrecision(Const.toInt(item.getText(6), -1));
+            inputField.setCurrency(item.getText(7));
+            inputField.setDecimal(item.getText(8));
+            inputField.setGroup(item.getText(9));
+
+            input.getInputFields()[i] = inputField;
         }
 
         dispose();
     }
 
     private String getMessage(final String key, final Object... param) {
-        return BaseMessages.getString(LookupStepDialog.class, key, param);
+        return BaseMessages.getString(InputStepDialog.class, key, param);
     }
 }
