@@ -7,6 +7,9 @@ import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.w3c.dom.Node;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Created by grebe on 19.02.2017.
  */
@@ -23,6 +26,8 @@ public class InputField {
     private String group;
     private int length;
     private int precision;
+    private String regExp;
+    private Pattern pattern;
 
     public InputField() {
         // default
@@ -39,6 +44,7 @@ public class InputField {
         this.length = Const.toInt(XMLHandler.getTagValue(knode, "length"), -1);
         this.precision = Const.toInt(XMLHandler.getTagValue(knode, "precision"), -1);
         this.currency = XMLHandler.getTagValue(knode, "currency");
+        this.regExp = XMLHandler.getTagValue(knode, "regExp");
 
         if (this.type < 0) {
             this.type = ValueMetaInterface.TYPE_STRING;
@@ -125,6 +131,21 @@ public class InputField {
         this.outputName = outputName;
     }
 
+    public String getRegExp() {
+        return regExp;
+    }
+
+    public void setRegExp(String regExp) {
+        this.regExp = regExp;
+        if (regExp != null) {
+            this.pattern = Pattern.compile(regExp);
+        }
+    }
+
+    public Pattern getPattern() {
+        return pattern;
+    }
+
     public ValueMetaInterface toValueMeta(String origin) {
         final ValueMetaInterface valueMeta = new ValueMetaBase(name, type);
         if (!StringUtil.isEmpty(outputName)) {
@@ -153,6 +174,7 @@ public class InputField {
         clone.setGroup(group);
         clone.setLength(length);
         clone.setPrecision(precision);
+        clone.setRegExp(regExp);
 
         return clone;
     }
@@ -170,6 +192,7 @@ public class InputField {
         builder.append("        ").append(XMLHandler.addTagValue("length", length));
         builder.append("        ").append(XMLHandler.addTagValue("precision", precision));
         builder.append("        ").append(XMLHandler.addTagValue("currency", currency));
+        builder.append("        ").append(XMLHandler.addTagValue("regExp", regExp));
         builder.append("      </input>").append(Const.CR);
 
         return builder.toString();

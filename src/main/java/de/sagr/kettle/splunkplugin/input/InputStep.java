@@ -4,6 +4,7 @@ import com.splunk.*;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -12,6 +13,7 @@ import org.pentaho.di.trans.step.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.regex.Matcher;
 
 public class InputStep extends BaseStep implements StepInterface {
 
@@ -104,14 +106,30 @@ public class InputStep extends BaseStep implements StepInterface {
             }
             // else convert the value to desired format
             else {
-                final ValueMetaInterface valueMeta = data.outputRowMeta.getValueMeta(i);
-                logRowlevel(valueMeta.toStringMeta());
-                outputRow[i] = valueMeta.convertData(data.conversionMeta[i], splunkValue);
+                outputRow[i] = convertData(data, i, nextField, splunkValue);
             }
         }
 
         // copy row to possible alternate rowset(s)
         putRow(data.outputRowMeta, outputRow);
+    }
+
+    private Object convertData(final InputStepData data, final int i, final InputField nextField, final String splunkValue) throws KettleException {
+        String value;
+        if (!StringUtil.isEmpty(nextField.getRegExp())) {
+            final Matcher matcher = nextField.getPattern().matcher(splunkValue);
+            if (matcher.find()) {
+                value = matcher.group();
+            } else {
+                value = splunkValue;
+            }
+        } else {
+            value = splunkValue;
+        }
+
+        final ValueMetaInterface valueMeta = data.outputRowMeta.getValueMeta(i);
+        logRowlevel(valueMeta.toStringMeta());
+        return valueMeta.convertData(data.conversionMeta[i], value);
     }
 
     @Override

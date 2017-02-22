@@ -18,8 +18,8 @@ public class InputStepData extends BaseStepData implements StepDataInterface {
 
 	// meta info for a string conversion 
 	public ValueMetaInterface[] conversionMeta;
-	
-    public InputStepData()
+
+	public InputStepData()
 	{
 		super();
 	}

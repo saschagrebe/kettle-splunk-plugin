@@ -268,7 +268,7 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
             keyWidgetRows = 1;
         }
 
-        final ColumnInfo[] ciKeys = new ColumnInfo[10];
+        final ColumnInfo[] ciKeys = new ColumnInfo[11];
         ciKeys[0] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Name"), ColumnInfo.COLUMN_TYPE_CCOMBO, new String[]{}, false);
         ciKeys[1] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.OutputName"), ColumnInfo.COLUMN_TYPE_TEXT, false);
         ciKeys[2] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Default"), ColumnInfo.COLUMN_TYPE_TEXT, false);
@@ -279,6 +279,7 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
         ciKeys[7] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Currency"), ColumnInfo.COLUMN_TYPE_TEXT, false);
         ciKeys[8] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Decimal"), ColumnInfo.COLUMN_TYPE_TEXT, false);
         ciKeys[9] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Group"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[10] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.RegExp"), ColumnInfo.COLUMN_TYPE_TEXT, false);
 
         fieldColumn = ciKeys[0];
 
@@ -387,48 +388,54 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
         }
 
         if (input.getInputFields() != null) {
-
-            for (int i = 0; i < input.getInputFields().length; i++) {
-                final InputField nextField = input.getInputFields()[i];
-                final TableItem item = wFields.table.getItem(i);
-
-                if (nextField.getName() != null) {
-                    item.setText(1, nextField.getName());
-                }
-
-                if (nextField.getOutputName() != null) {
-                    item.setText(2, nextField.getOutputName());
-                }
-
-                if (nextField.getDefaultValue() != null) {
-                    item.setText(3, nextField.getDefaultValue());
-                }
-
-                item.setText(4, ValueMetaBase.getTypeDesc(nextField.getType()));
-
-                if (nextField.getFormat() != null) {
-                    item.setText(5, nextField.getFormat());
-                }
-                item.setText(6, nextField.getLength() < 0 ? "" : "" + nextField.getLength());
-                item.setText(7, nextField.getPrecision() < 0 ? "" : "" + nextField.getPrecision());
-
-                if (nextField.getCurrency() != null) {
-                    item.setText(8, nextField.getCurrency());
-                }
-
-                if (nextField.getDecimal() != null) {
-                    item.setText(9, nextField.getDecimal());
-                }
-
-                if (nextField.getGroup() != null) {
-                    item.setText(10, nextField.getGroup());
-                }
-
-            }
+            getTableData();
         }
 
         wFields.setRowNums();
         wFields.optWidth(true);
+    }
+
+    private void getTableData() {
+        for (int i = 0; i < input.getInputFields().length; i++) {
+            final InputField nextField = input.getInputFields()[i];
+            final TableItem item = wFields.table.getItem(i);
+
+            if (nextField.getName() != null) {
+                item.setText(1, nextField.getName());
+            }
+
+            if (nextField.getOutputName() != null) {
+                item.setText(2, nextField.getOutputName());
+            }
+
+            if (nextField.getDefaultValue() != null) {
+                item.setText(3, nextField.getDefaultValue());
+            }
+
+            item.setText(4, ValueMetaBase.getTypeDesc(nextField.getType()));
+
+            if (nextField.getFormat() != null) {
+                item.setText(5, nextField.getFormat());
+            }
+            item.setText(6, nextField.getLength() < 0 ? "" : "" + nextField.getLength());
+            item.setText(7, nextField.getPrecision() < 0 ? "" : "" + nextField.getPrecision());
+
+            if (nextField.getCurrency() != null) {
+                item.setText(8, nextField.getCurrency());
+            }
+
+            if (nextField.getDecimal() != null) {
+                item.setText(9, nextField.getDecimal());
+            }
+
+            if (nextField.getGroup() != null) {
+                item.setText(10, nextField.getGroup());
+            }
+
+            if (nextField.getRegExp() != null) {
+                item.setText(11, nextField.getRegExp());
+            }
+        }
     }
 
     // asynchronous filling of the combo boxes
@@ -492,6 +499,7 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
             inputField.setCurrency(item.getText(8));
             inputField.setDecimal(item.getText(9));
             inputField.setGroup(item.getText(10));
+            inputField.setRegExp(item.getText(11));
 
             input.getInputFields()[i] = inputField;
         }

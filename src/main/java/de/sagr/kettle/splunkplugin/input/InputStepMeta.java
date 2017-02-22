@@ -197,6 +197,7 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
                 field.setLength(Const.toInt(rep.getStepAttributeString(id_step, i, "lookup_length"), -1));
                 field.setPrecision(Const.toInt(rep.getStepAttributeString(id_step, i, "lookup_precision"), -1));
                 field.setCurrency(rep.getStepAttributeString(id_step, i, "lookup_currency"));
+                field.setRegExp(rep.getStepAttributeString(id_step, i, "lookup_regexp"));
 
                 this.inputFields[i] = field;
 
@@ -228,7 +229,7 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_length", nextField.getLength());
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_precision", nextField.getPrecision());
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_currency", nextField.getCurrency());
-
+                rep.saveStepAttribute(id_transformation, id_step, i, "lookup_regexp", nextField.getRegExp());
             }
 
         } catch (Exception e) {
