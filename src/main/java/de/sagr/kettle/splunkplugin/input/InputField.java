@@ -3,6 +3,7 @@ package de.sagr.kettle.splunkplugin.input;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.w3c.dom.Node;
 
@@ -12,6 +13,8 @@ import org.w3c.dom.Node;
 public class InputField {
 
     private String name;
+
+    private String outputName;
     private String defaultValue;
     private int type;
     private String format;
@@ -27,6 +30,7 @@ public class InputField {
 
     public InputField(Node knode) {
         this.name = XMLHandler.getTagValue(knode, "fieldName");
+        this.outputName = XMLHandler.getTagValue(knode, "outputName");
         this.defaultValue = XMLHandler.getTagValue(knode, "default");
         this.type = ValueMetaBase.getType(XMLHandler.getTagValue(knode, "type"));
         this.format = XMLHandler.getTagValue(knode, "format");
@@ -113,8 +117,19 @@ public class InputField {
         this.type = type;
     }
 
+    public String getOutputName() {
+        return outputName;
+    }
+
+    public void setOutputName(String outputName) {
+        this.outputName = outputName;
+    }
+
     public ValueMetaInterface toValueMeta(String origin) {
         final ValueMetaInterface valueMeta = new ValueMetaBase(name, type);
+        if (!StringUtil.isEmpty(outputName)) {
+            valueMeta.setName(outputName);
+        }
         valueMeta.setLength(length);
         valueMeta.setPrecision(precision);
         valueMeta.setCurrencySymbol(currency);
@@ -129,6 +144,7 @@ public class InputField {
     public InputField clone() {
         final InputField clone = new InputField();
         clone.setName(name);
+        clone.setOutputName(outputName);
         clone.setDefaultValue(defaultValue);
         clone.setType(type);
         clone.setCurrency(currency);
@@ -145,6 +161,7 @@ public class InputField {
         final StringBuilder builder = new StringBuilder();
         builder.append("      <input>").append(Const.CR);
         builder.append("        ").append(XMLHandler.addTagValue("fieldName", name));
+        builder.append("        ").append(XMLHandler.addTagValue("outputName", outputName));
         builder.append("        ").append(XMLHandler.addTagValue("default", defaultValue));
         builder.append("        ").append(XMLHandler.addTagValue("type", ValueMetaBase.getTypeDesc(type)));
         builder.append("        ").append(XMLHandler.addTagValue("format", format));

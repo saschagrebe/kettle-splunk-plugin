@@ -188,6 +188,7 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
             for (int i = 0; i < nrKeys; i++) {
                 final InputField field = new InputField();
                 field.setName(rep.getStepAttributeString(id_step, i, "lookup_field"));
+                field.setOutputName(rep.getStepAttributeString(id_step, i, "lookup_output"));
                 field.setDefaultValue(rep.getStepAttributeString(id_step, i, "lookup_default"));
                 field.setType(ValueMetaBase.getType(rep.getStepAttributeString(id_step, i, "lookup_type")));
                 field.setFormat(rep.getStepAttributeString(id_step, i, "lookup_format"));
@@ -218,6 +219,7 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
             for (int i = 0; i < inputFields.length; i++) {
                 final InputField nextField = inputFields[i];
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_field", nextField.getName());
+                rep.saveStepAttribute(id_transformation, id_step, i, "lookup_output", nextField.getOutputName());
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_default", nextField.getDefaultValue());
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_type", ValueMetaBase.getTypeDesc(nextField.getType()));
                 rep.saveStepAttribute(id_transformation, id_step, i, "lookup_format", nextField.getFormat());

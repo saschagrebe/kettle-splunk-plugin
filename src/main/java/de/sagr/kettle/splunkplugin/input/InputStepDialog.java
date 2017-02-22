@@ -268,16 +268,17 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
             keyWidgetRows = 1;
         }
 
-        final ColumnInfo[] ciKeys = new ColumnInfo[9];
+        final ColumnInfo[] ciKeys = new ColumnInfo[10];
         ciKeys[0] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Name"), ColumnInfo.COLUMN_TYPE_CCOMBO, new String[]{}, false);
-        ciKeys[1] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Default"), ColumnInfo.COLUMN_TYPE_TEXT, false);
-        ciKeys[2] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Type"), ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaBase.getTypes());
-        ciKeys[3] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Format"), ColumnInfo.COLUMN_TYPE_FORMAT, 4);
-        ciKeys[4] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Length"), ColumnInfo.COLUMN_TYPE_TEXT, false);
-        ciKeys[5] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Precision"), ColumnInfo.COLUMN_TYPE_TEXT, false);
-        ciKeys[6] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Currency"), ColumnInfo.COLUMN_TYPE_TEXT, false);
-        ciKeys[7] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Decimal"), ColumnInfo.COLUMN_TYPE_TEXT, false);
-        ciKeys[8] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Group"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[1] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.OutputName"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[2] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Default"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[3] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Type"), ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaBase.getTypes());
+        ciKeys[4] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Format"), ColumnInfo.COLUMN_TYPE_FORMAT, 4);
+        ciKeys[5] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Length"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[6] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Precision"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[7] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Currency"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[8] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Decimal"), ColumnInfo.COLUMN_TYPE_TEXT, false);
+        ciKeys[9] = new ColumnInfo(getMessage("Dialog.Fields.ColumnInfo.Group"), ColumnInfo.COLUMN_TYPE_TEXT, false);
 
         fieldColumn = ciKeys[0];
 
@@ -395,28 +396,32 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
                     item.setText(1, nextField.getName());
                 }
 
-                if (nextField.getDefaultValue() != null) {
-                    item.setText(2, nextField.getDefaultValue());
+                if (nextField.getOutputName() != null) {
+                    item.setText(2, nextField.getOutputName());
                 }
 
-                item.setText(3, ValueMetaBase.getTypeDesc(nextField.getType()));
+                if (nextField.getDefaultValue() != null) {
+                    item.setText(3, nextField.getDefaultValue());
+                }
+
+                item.setText(4, ValueMetaBase.getTypeDesc(nextField.getType()));
 
                 if (nextField.getFormat() != null) {
-                    item.setText(4, nextField.getFormat());
+                    item.setText(5, nextField.getFormat());
                 }
-                item.setText(5, nextField.getLength() < 0 ? "" : "" + nextField.getLength());
-                item.setText(6, nextField.getPrecision() < 0 ? "" : "" + nextField.getPrecision());
+                item.setText(6, nextField.getLength() < 0 ? "" : "" + nextField.getLength());
+                item.setText(7, nextField.getPrecision() < 0 ? "" : "" + nextField.getPrecision());
 
                 if (nextField.getCurrency() != null) {
-                    item.setText(7, nextField.getCurrency());
+                    item.setText(8, nextField.getCurrency());
                 }
 
                 if (nextField.getDecimal() != null) {
-                    item.setText(8, nextField.getDecimal());
+                    item.setText(9, nextField.getDecimal());
                 }
 
                 if (nextField.getGroup() != null) {
-                    item.setText(9, nextField.getGroup());
+                    item.setText(10, nextField.getGroup());
                 }
 
             }
@@ -470,9 +475,10 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
             final InputField inputField = new InputField();
             final TableItem item = wFields.getNonEmpty(i);
             inputField.setName(item.getText(1));
-            inputField.setDefaultValue(item.getText(2));
+            inputField.setOutputName(item.getText(2));
+            inputField.setDefaultValue(item.getText(3));
 
-            final int type = ValueMetaBase.getType(item.getText(3));
+            final int type = ValueMetaBase.getType(item.getText(4));
             if (type < 0) {
                 // fix unknowns
                 inputField.setType(ValueMetaInterface.TYPE_STRING);
@@ -480,12 +486,12 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
                 inputField.setType(type);
             }
 
-            inputField.setFormat(item.getText(4));
-            inputField.setLength(Const.toInt(item.getText(5), -1));
-            inputField.setPrecision(Const.toInt(item.getText(6), -1));
-            inputField.setCurrency(item.getText(7));
-            inputField.setDecimal(item.getText(8));
-            inputField.setGroup(item.getText(9));
+            inputField.setFormat(item.getText(5));
+            inputField.setLength(Const.toInt(item.getText(6), -1));
+            inputField.setPrecision(Const.toInt(item.getText(7), -1));
+            inputField.setCurrency(item.getText(8));
+            inputField.setDecimal(item.getText(9));
+            inputField.setGroup(item.getText(10));
 
             input.getInputFields()[i] = inputField;
         }
