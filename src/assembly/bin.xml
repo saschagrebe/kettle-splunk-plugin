@@ -2,7 +2,7 @@
           xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
     <id>bin</id>
     <includeBaseDirectory>true</includeBaseDirectory>
-    <baseDirectory>kettle-splunk-plugin</baseDirectory>
+    <baseDirectory>${project.groupId}-${project.artifactId}</baseDirectory>
     <formats>
         <format>zip</format>
     </formats>
