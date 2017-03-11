@@ -1,5 +1,7 @@
 package de.sagr.kettle.splunkplugin.input;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Shell;
@@ -23,7 +25,7 @@ import org.w3c.dom.Node;
 public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
 
     private String splunkHost;
-    private String splunkPort;
+    private int splunkPort;
     private String splunkUsername;
     private String splunkPassword;
     private String splunkSearchQuery;
@@ -44,11 +46,11 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
         this.splunkHost = splunkHost;
     }
 
-    public String getSplunkPort() {
+    public int getSplunkPort() {
         return splunkPort;
     }
 
-    public void setSplunkPort(String splunkPort) {
+    public void setSplunkPort(int splunkPort) {
         this.splunkPort = splunkPort;
     }
 
@@ -80,6 +82,14 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
         return inputFields;
     }
 
+    public String[] getInputFieldNames() {
+        final String[] fieldNames = new String[inputFields.length];
+        for (int i = 0; i < inputFields.length; i++) {
+            fieldNames[i] = inputFields[i].getName();
+        }
+        return fieldNames;
+    }
+
     public void setInputFields(InputField[] inputFields) {
         this.inputFields = inputFields;
     }
@@ -88,7 +98,7 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
     @Override
     public void setDefault() {
         splunkHost = "localhost";
-        splunkPort = "8089";
+        splunkPort = 8089;
         splunkUsername = "";
         splunkPassword = "";
         splunkSearchQuery = "";
@@ -154,7 +164,7 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
     public void loadXML(Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore) throws KettleXMLException {
         try {
             splunkHost = XMLHandler.getTagValue(stepnode, "host");
-            splunkPort = XMLHandler.getTagValue(stepnode, "port");
+            splunkPort = Integer.parseInt(XMLHandler.getTagValue(stepnode, "port"));
             splunkUsername = XMLHandler.getTagValue(stepnode, "username");
             splunkPassword = XMLHandler.getTagValue(stepnode, "password");
             splunkSearchQuery = XMLHandler.getTagValue(stepnode, "searchQuery");
@@ -177,7 +187,7 @@ public class InputStepMeta extends BaseStepMeta implements StepMetaInterface {
     public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases) throws KettleException {
         try {
             splunkHost = rep.getStepAttributeString(id_step, "host");
-            splunkPort = rep.getStepAttributeString(id_step, "port");
+            splunkPort = Integer.parseInt(rep.getStepAttributeString(id_step, "port"));
             splunkUsername = rep.getStepAttributeString(id_step, "username");
             splunkPassword = rep.getStepAttributeString(id_step, "password");
             splunkSearchQuery = rep.getStepAttributeString(id_step, "searchQuery");

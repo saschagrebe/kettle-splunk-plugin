@@ -1,21 +1,15 @@
 package de.sagr.kettle.splunkplugin.input;
 
-import com.splunk.*;
+import de.sagr.kettle.splunkplugin.adapter.SplunkAdapter;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.regex.Matcher;
-
-public class InputStep extends BaseStep implements StepInterface {
+public class InputStep extends BaseStep {
 
     public InputStep(final StepMeta s, final StepDataInterface stepDataInterface, final int c, final TransMeta t, final Trans dis) {
         super(s, stepDataInterface, c, t, dis);
@@ -30,7 +24,9 @@ public class InputStep extends BaseStep implements StepInterface {
             first = false;
             initDefaultData(meta, data);
         }
-        performSplunkSearch(meta, data);
+
+        final InputStepSearchEventProcessor processor = new InputStepSearchEventProcessor(this, meta, data);
+        data.adapter.search(meta.getSplunkSearchQuery(), meta.getInputFieldNames(), processor);
 
         // input step process rows is called once
         setOutputDone();
@@ -72,83 +68,14 @@ public class InputStep extends BaseStep implements StepInterface {
         logRowlevel(data.conversionMeta.toString());
     }
 
-    private void performSplunkSearch(final InputStepMeta meta, final InputStepData data) throws KettleException {
-        // search splunk an process each event
-        try (final InputStream exportSearch = data.splunkService.export("search " + meta.getSplunkSearchQuery())) {
-            // Display results using the SDK's multi-results reader for XML
-            final MultiResultsReaderXml multiResultsReader = new MultiResultsReaderXml(exportSearch);
-
-            for (SearchResults searchResults : multiResultsReader) {
-                for (Event event : searchResults) {
-                    processSplunkEvent(meta, data, event);
-                }
-            }
-            multiResultsReader.close();
-
-        } catch(IOException e) {
-            throw new KettleException(e);
-        }
-    }
-
-    private void processSplunkEvent(final InputStepMeta meta, final InputStepData data, final Event event) throws KettleException {
-        // generate output row, make it correct size
-        final Object[] outputRow = new Object[data.outputRowMeta.size()];
-
-        // fill the output fields with look up data
-        for (int i = 0; i < meta.getInputFields().length; i++) {
-            final InputField nextField = meta.getInputFields()[i];
-            final String nextFieldName = nextField.getName();
-            final String splunkValue = event.get(nextFieldName);
-
-            // if nothing is there, return the default
-            if (splunkValue == null) {
-                outputRow[i] = data.defaultObjects[i];
-            }
-            // else convert the value to desired format
-            else {
-                outputRow[i] = convertData(data, i, nextField, splunkValue);
-            }
-        }
-
-        // copy row to possible alternate rowset(s)
-        putRow(data.outputRowMeta, outputRow);
-    }
-
-    private Object convertData(final InputStepData data, final int i, final InputField nextField, final String splunkValue) throws KettleException {
-        String value;
-        if (!StringUtil.isEmpty(nextField.getRegExp())) {
-            final Matcher matcher = nextField.getPattern().matcher(splunkValue);
-            if (matcher.find()) {
-                value = matcher.group();
-            } else {
-                value = splunkValue;
-            }
-        } else {
-            value = splunkValue;
-        }
-
-        final ValueMetaInterface valueMeta = data.outputRowMeta.getValueMeta(i);
-        logRowlevel(valueMeta.toStringMeta());
-        return valueMeta.convertData(data.conversionMeta[i], value);
-    }
-
     @Override
     public boolean init(final StepMetaInterface smi, final StepDataInterface sdi) {
         final InputStepMeta meta = (InputStepMeta) smi;
         final InputStepData data = (InputStepData) sdi;
 
-        final ServiceArgs splunkCredentials = new ServiceArgs();
-        splunkCredentials.setHost(meta.getSplunkHost());
-        splunkCredentials.setPort(Integer.parseInt(meta.getSplunkPort()));
-        splunkCredentials.setUsername(meta.getSplunkUsername());
-        splunkCredentials.setPassword(meta.getSplunkPassword());
-        splunkCredentials.setSSLSecurityProtocol(SSLSecurityProtocol.TLSv1_2);
-
         // connect to splunk service
-        data.splunkService = Service.connect(splunkCredentials);
-        if (data.splunkService == null) {
-            return false;
-        }
+        data.adapter = new SplunkAdapter();
+        data.adapter.init(meta.getSplunkHost(), meta.getSplunkPort(), meta.getSplunkUsername(), meta.getSplunkPassword());
 
         return super.init(smi, sdi);
     }
@@ -157,7 +84,7 @@ public class InputStep extends BaseStep implements StepInterface {
     public void dispose(final StepMetaInterface smi, final StepDataInterface sdi) {
         final InputStepData data = (InputStepData) sdi;
 
-        data.splunkService = null;
+        data.adapter = null;
 
         super.dispose(smi, sdi);
     }

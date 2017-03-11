@@ -1,6 +1,6 @@
 package de.sagr.kettle.splunkplugin.input;
 
-import com.splunk.Service;
+import de.sagr.kettle.splunkplugin.adapter.SplunkAdapter;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
@@ -13,8 +13,8 @@ public class InputStepData extends BaseStepData implements StepDataInterface {
 	// precomputed default objects
 	public Object[] defaultObjects;
 
-	// splunk service
-	public Service splunkService;
+	// splunk adapter
+	public SplunkAdapter adapter;
 
 	// meta info for a string conversion 
 	public ValueMetaInterface[] conversionMeta;

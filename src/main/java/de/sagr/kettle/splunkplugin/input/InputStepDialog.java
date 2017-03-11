@@ -1,8 +1,10 @@
 package de.sagr.kettle.splunkplugin.input;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import com.sun.rowset.internal.InsertRow;
+import de.sagr.kettle.splunkplugin.adapter.SplunkAdapter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -59,9 +61,6 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
     // input fields settings widgets
     private Label wlFields;
     private TableView wFields;
-
-    // all fields from the previous steps, used for dropdown selection
-    private RowMetaInterface prevFields = null;
 
     // the dropdown column which should contain previous fields from stream
     private ColumnInfo fieldColumn = null;
@@ -304,23 +303,34 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
         wOK.setText(getMessage("System.Button.OK"));
         wCancel = new Button(shell, SWT.PUSH);
         wCancel.setText(getMessage("System.Button.Cancel"));
+        wGet = new Button(shell, SWT.PUSH);
+        wGet.setText(getMessage("System.Button.GetFields"));
 
-        BaseStepDialog.positionBottomButtons(shell, new Button[]{wOK, wCancel}, margin, wFields);
+        BaseStepDialog.positionBottomButtons(shell, new Button[]{wOK, wCancel, wGet}, margin, wFields);
 
         // Add listeners
         lsCancel = new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 cancel();
             }
         };
         lsOK = new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 ok();
+            }
+        };
+        lsGet = new Listener() {
+            @Override
+            public void handleEvent(Event event) {
+                loadFieldsForQuery();
             }
         };
 
         wCancel.addListener(SWT.Selection, lsCancel);
         wOK.addListener(SWT.Selection, lsOK);
+        wGet.addListener(SWT.Selection, lsGet);
     }
 
     private void addDefaultListeners() {
@@ -350,7 +360,6 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
 
     private String openDialog() {
         getData();
-        setComboValues();
 
         input.setChanged(backupChanged);
 
@@ -370,10 +379,7 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
         if (input.getSplunkHost() != null) {
             wHost.setText(input.getSplunkHost());
         }
-
-        if (input.getSplunkPort() != null) {
-            wPort.setText(input.getSplunkPort());
-        }
+        wPort.setText(String.valueOf(input.getSplunkPort()));
 
         if (input.getSplunkUsername() != null) {
             wUsername.setText(input.getSplunkUsername());
@@ -438,26 +444,6 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
         }
     }
 
-    // asynchronous filling of the combo boxes
-    private void setComboValues() {
-        Runnable fieldLoader = new Runnable() {
-            public void run() {
-                try {
-                    prevFields = transMeta.getPrevStepFields(stepname);
-                } catch (KettleException e) {
-                    prevFields = new RowMeta();
-                    String msg = getMessage("Dialog.DoMapping.UnableToFindInput");
-                    logError(msg);
-                }
-                String[] prevStepFieldNames = prevFields.getFieldNames();
-                Arrays.sort(prevStepFieldNames);
-                fieldColumn.setComboValues(prevStepFieldNames);
-
-            }
-        };
-        new Thread(fieldLoader).start();
-    }
-
     private void cancel() {
         stepname = null;
         input.setChanged(backupChanged);
@@ -469,7 +455,7 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
         stepname = wStepname.getText();
 
         input.setSplunkHost(wHost.getText());
-        input.setSplunkPort(wPort.getText());
+        input.setSplunkPort(Integer.parseInt(wPort.getText()));
         input.setSplunkUsername(wUsername.getText());
         input.setSplunkPassword(wPassword.getText());
         input.setSplunkSearchQuery(wSearchQuery.getText());
@@ -505,6 +491,15 @@ public class InputStepDialog extends BaseStepDialog implements StepDialogInterfa
         }
 
         dispose();
+    }
+
+    private void loadFieldsForQuery() {
+        final SplunkAdapter adapter = new SplunkAdapter();
+        adapter.init(input.getSplunkHost(), input.getSplunkPort(), input.getSplunkUsername(), input.getSplunkPassword());
+
+        final Set<String> fieldNames = adapter.getSplunkFields(wSearchQuery.getText());
+        final String[] fieldNamesArray = fieldNames.toArray(new String[fieldNames.size()]);
+        fieldColumn.setComboValues(fieldNamesArray);
     }
 
     private String getMessage(final String key, final Object... param) {
